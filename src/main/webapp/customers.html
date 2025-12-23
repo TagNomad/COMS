@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 客户管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="brand">COMS 系统</div>
+        <ul class="nav-links">
+            <li class="nav-item"><a href="index.html" class="nav-link">仪表盘</a></li>
+            <li class="nav-item"><a href="products.html" class="nav-link">产品管理</a></li>
+            <li class="nav-item"><a href="customers.html" class="nav-link active">客户管理</a></li>
+            <li class="nav-item"><a href="orders.html" class="nav-link">订单管理</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">客户管理</h1>
+            <button class="btn btn-primary" onclick="openAddModal()">+ 新增客户</button>
+        </header>
+
+        <div class="card">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="搜索客户..." id="searchInput"
+                    oninput="searchCustomers()">
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>客户名称</th>
+                            <th>联系人</th>
+                            <th>电话</th>
+                            <th>等级</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerList"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增客户</h3>
+                <button class="close-btn" onclick="hideModal('customerModal')">&times;</button>
+            </div>
+            <form id="customerForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="customerId">
+                <div class="form-group">
+                    <label class="form-label">客户名称</label>
+                    <input type="text" class="form-control" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">联系人</label>
+                            <input type="text" class="form-control" id="contactName">
+                        </div>
+                        <div>
+                            <label class="form-label">电话</label>
+                            <input type="text" class="form-control" id="phone">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">地址</label>
+                    <input type="text" class="form-control" id="address">
+                </div>
+                <div class="form-group">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div>
+                            <label class="form-label">等级</label>
+                            <select class="form-control" id="customerLevel">
+                                <option value="普通">普通</option>
+                                <option value="银牌">银牌 (95折)</option>
+                                <option value="金牌">金牌 (90折)</option>
+                                <option value="钻石">钻石 (85折)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn"
+                        style="background: transparent; color: var(--text-muted); margin-right: 10px;"
+                        onclick="hideModal('customerModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        async function loadData() {
+            await searchCustomers();
+        }
+
+        async function searchCustomers() {
+            const keyword = document.getElementById('searchInput').value;
+            const url = keyword ? `/customer?keyword=${keyword}` : '/customer';
+            const customers = await fetchAPI(url);
+            renderTable(customers);
+        }
+
+        function renderTable(customers) {
+            const tbody = document.getElementById('customerList');
+            tbody.innerHTML = customers.map(c => `
+                <tr>
+                    <td>${c.customerId}</td>
+                    <td>${c.customerName}</td>
+                    <td>${c.contactName || '-'}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td><span class="status-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color)">${c.customerLevel}</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px" onclick='editCustomer(${JSON.stringify(c)})'>编辑</button>
+                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px" onclick="deleteCustomer(${c.customerId})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '新增客户';
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerId').value = '';
+            showModal('customerModal');
+        }
+
+        function editCustomer(c) {
+            document.getElementById('modalTitle').textContent = '编辑客户';
+            document.getElementById('customerId').value = c.customerId;
+            document.getElementById('customerName').value = c.customerName;
+            document.getElementById('contactName').value = c.contactName || '';
+            document.getElementById('phone').value = c.phone || '';
+            document.getElementById('address').value = c.address || '';
+            document.getElementById('email').value = c.email || '';
+            document.getElementById('customerLevel').value = c.customerLevel;
+            showModal('customerModal');
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('customerId').value;
+            const data = {
+                customerName: document.getElementById('customerName').value,
+                contactName: document.getElementById('contactName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                email: document.getElementById('email').value,
+                customerLevel: document.getElementById('customerLevel').value
+            };
+
+            if (id) {
+                data.customerId = id;
+                await fetchAPI('/customer', { method: 'PUT', body: JSON.stringify(data) });
+            } else {
+                await fetchAPI('/customer', { method: 'POST', body: JSON.stringify(data) });
+            }
+            hideModal('customerModal');
+            loadData();
+        }
+
+        async function deleteCustomer(id) {
+            if (confirm('确定要删除该客户吗？')) {
+                await fetchAPI(`/customer/${id}`, { method: 'DELETE' });
+                loadData();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+
+</html>
