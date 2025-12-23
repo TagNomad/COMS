@@ -1,0 +1,36 @@
+:root {
+    /* Apple-inspired Palette */
+    --primary: #007AFF;
+    /* San Francisco Blue */
+    --primary-hover: #0062CC;
+    --background: #FBFBFD;
+    /* Light gray-white */
+    --surface: rgba(255, 255, 255, 0.72);
+    /* Translucent */
+    --sidebar-bg: rgba(245, 245, 247, 0.85);
+    /* Translucent Sidebar */
+    --text-main: #1D1D1F;
+    --text-muted: #86868B;
+    --border: rgba(0, 0, 0, 0.1);
+
+    /* Functional Colors */
+    --success: #34C759;
+    --warning: #FF9500;
+    --danger: #FF3B30;
+
+    /* Spacing */
+    --header-height: 60px;
+    --sidebar-width: 260px;
+
+    /* Typography */
+    --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    /* Softer, spread out shadow */
+    --backdrop-blur: blur(20px);
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+}

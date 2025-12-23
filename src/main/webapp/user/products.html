@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 商品浏览</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="main-content">
+        <div id="header-placeholder"></div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">商品浏览</h2>
+            <div class="stats-grid" id="productGrid"
+                style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                <!-- Products loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserComponents('商品浏览');
+            loadUserProducts();
+        });
+
+        async function loadUserProducts() {
+            const products = await fetchAPI('/product');
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = products.map(p => `
+                <div class="stat-card" style="padding: 16px;">
+                    <div style="height: 120px; background: #f3f4f6; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-light);">
+                        商品图片
+                    </div>
+                    <div class="stat-label" style="margin-bottom: 4px;">${p.categoryName || '未分类'}</div>
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 16px;">${p.productName}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--primary); font-weight: 700;">${formatCurrency(p.price)}</span>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px">购买</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

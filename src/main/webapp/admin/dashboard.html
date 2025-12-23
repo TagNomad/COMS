@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 仪表盘</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="main-content">
+        <div id="header-placeholder"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">总销售额</div>
+                <div class="stat-value" id="totalSales">¥0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">总订单数</div>
+                <div class="stat-value" id="orderCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">系统状态</div>
+                <div class="stat-value text-success" style="font-size: 24px;">运行正常</div>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: 2fr 1fr;">
+            <div class="card">
+                <h3 style="margin-bottom: 20px;">销售趋势 (近7天)</h3>
+                <canvas id="salesChart" height="200"></canvas>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 20px;">用户分布</h3>
+                <canvas id="userChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="modal-title" style="margin-bottom: 20px">热销产品排行</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>产品名称</th>
+                            <th>分类</th>
+                            <th>单价</th>
+                            <th>当前库存</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsList">
+                        <!-- Loaded by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            loadTopNav();
+            loadAdminComponents('仪表盘'); // Load nav and header
+            loadDashboardStats();
+            initCharts();
+        });
+
+        function initCharts() {
+            // Mock Data for Sales Trend
+            const ctxSales = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctxSales, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [{
+                        label: '销售额',
+                        data: [12000, 19000, 3000, 5000, 2000, 30000, 45000],
+                        borderColor: '#007AFF',
+                        backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
+                }
+            });
+
+            // Mock Data for User Distribution
+            const ctxUser = document.getElementById('userChart').getContext('2d');
+            new Chart(ctxUser, {
+                type: 'doughnut',
+                data: {
+                    labels: ['普通会员', 'VIP', '企业用户'],
+                    datasets: [{
+                        data: [300, 50, 100],
+                        backgroundColor: ['#34C759', '#FF9500', '#007AFF'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

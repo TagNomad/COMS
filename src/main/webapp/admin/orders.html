@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 订单管理</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="main-content">
+        <div id="header-placeholder"></div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="modal-title">订单列表</h2>
+                <button class="btn btn-primary" onclick="openCreateModal()">+ 创建订单</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>订单ID</th>
+                            <th>客户</th>
+                            <th>金额</th>
+                            <th>日期</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderList"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Order Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal" style="width: 800px">
+            <div class="modal-header">
+                <h3 class="modal-title">创建订单</h3>
+                <button class="close-btn" onclick="hideModal('orderModal')">&times;</button>
+            </div>
+            <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label class="form-label">选择客户</label>
+                    <select class="form-control" id="customerSelect"></select>
+                </div>
+                <div>
+                    <label class="form-label">收货地址</label>
+                    <input type="text" class="form-control" id="shippingAddress" placeholder="输入收货地址">
+                </div>
+            </div>
+
+            <div class="card" style="background: rgba(0,0,0,0.2); padding: 15px;">
+                <h4 style="margin-bottom: 10px">添加产品</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select class="form-control" id="productSelect" style="flex: 2"></select>
+                    <input type="number" class="form-control" id="quantityInput" placeholder="数量" value="1"
+                        style="flex: 1">
+                    <button class="btn btn-primary" onclick="addItem()">添加</button>
+                </div>
+
+                <table style="margin-top: 10px">
+                    <thead>
+                        <tr>
+                            <th>产品</th>
+                            <th>数量</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderItemsList"></tbody>
+                </table>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn" onclick="hideModal('orderModal')">取消</button>
+                <button class="btn btn-primary" onclick="submitOrder()">提交订单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">订单详情</h3>
+                <button class="close-btn" onclick="hideModal('detailModal')">&times;</button>
+            </div>
+            <div id="orderDetailContent"></div>
+            <div style="margin-top: 20px" id="orderActions"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let currentItems = [];
+        let products = [];
+
+        async function loadData() {
+            const orders = await fetchAPI('/order');
+            renderTable(orders);
+
+            // Load dropdowns for modal
+            const customers = await fetchAPI('/customer');
+            document.getElementById('customerSelect').innerHTML =
+                '<option value="">选择客户...</option>' +
+                customers.map(c => `<option value="${c.customerId}">${c.customerName} (${c.customerLevel})</option>`).join('');
+
+            products = await fetchAPI('/product');
+            document.getElementById('productSelect').innerHTML =
+                '<option value="">选择产品...</option>' +
+                products.map(p => `<option value="${p.productId}" data-price="${p.price}">${p.productName} (¥${p.price})</option>`).join('');
+        }
+
+        function renderTable(orders) {
+            const tbody = document.getElementById('orderList');
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>#${o.orderId}</td>
+                    <td>${o.customerName}</td>
+                    <td>${formatCurrency(o.totalAmount)}</td>
+                    <td>${formatDate(o.orderDate)}</td>
+                    <td><span class="status-badge ${getStatusClass(o.orderStatus)}">${o.orderStatus}</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px" onclick="viewOrder(${o.orderId})">详情</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            if (status === '已完成') return 'status-in-stock';
+            if (status === '已取消') return 'status-out-stock';
+            return 'status-low-stock';
+        }
+
+        function openCreateModal() {
+            currentItems = [];
+            renderItems();
+            document.getElementById('shippingAddress').value = '';
+            document.getElementById('customerSelect').value = '';
+            showModal('orderModal');
+        }
+
+        function addItem() {
+            const select = document.getElementById('productSelect');
+            const productId = select.value;
+            const productName = select.options[select.selectedIndex].text;
+            const quantity = parseInt(document.getElementById('quantityInput').value);
+
+            if (!productId || quantity < 1) return;
+
+            currentItems.push({ productId, productName, quantity });
+            renderItems();
+        }
+
+        function renderItems() {
+            document.getElementById('orderItemsList').innerHTML = currentItems.map((item, index) => `
+                <tr>
+                    <td>${item.productName}</td>
+                    <td>${item.quantity}</td>
+                    <td><button class="btn btn-danger" style="padding: 2px 6px" onclick="removeItem(${index})">&times;</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function removeItem(index) {
+            currentItems.splice(index, 1);
+            renderItems();
+        }
+
+        async function submitOrder() {
+            const customerId = document.getElementById('customerSelect').value;
+            const shippingAddress = document.getElementById('shippingAddress').value;
+
+            if (!customerId || currentItems.length === 0) {
+                alert('请填写完整订单信息');
+                return;
+            }
+
+            const order = {
+                customerId,
+                shippingAddress,
+                items: currentItems
+            };
+
+            await fetchAPI('/order', {
+                method: 'POST',
+                body: JSON.stringify(order)
+            });
+
+            hideModal('orderModal');
+            loadData();
+        }
+
+        async function viewOrder(id) {
+            const order = await fetchAPI(`/order/${id}`);
+            const content = document.getElementById('orderDetailContent');
+
+            content.innerHTML = `
+                <p><strong>订单号:</strong> #${order.orderId}</p>
+                <p><strong>客户:</strong> ${order.customerName}</p>
+                <p><strong>金额:</strong> ${formatCurrency(order.totalAmount)}</p>
+                <p><strong>地址:</strong> ${order.shippingAddress || '-'}</p>
+                <p><strong>状态:</strong> ${order.orderStatus}</p>
+                <h4 style="margin: 15px 0 10px">订单明细</h4>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden">
+                    <table>
+                        <thead><tr><th>产品</th><th>数量</th><th>单价</th><th>总价</th></tr></thead>
+                        <tbody>
+                            ${order.orderItems.map(item => `
+                                <tr>
+                                    <td>${item.productName}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${formatCurrency(item.unitPrice)}</td>
+                                    <td>${formatCurrency(item.totalPrice)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const actions = document.getElementById('orderActions');
+            if (order.orderStatus === '待审核') {
+                actions.innerHTML = `
+                    <button class="btn btn-primary" onclick="updateStatus(${order.orderId}, '已确认')">确认订单</button>
+                    <button class="btn btn-danger" onclick="updateStatus(${order.orderId}, '已取消')">取消订单</button>
+                `;
+            } else if (order.orderStatus === '已确认') {
+                actions.innerHTML = `<button class="btn btn-primary" onclick="updateStatus(${order.orderId}, '发货中')">发货</button>`;
+            } else if (order.orderStatus === '发货中') {
+                actions.innerHTML = `<button class="btn btn-primary" onclick="updateStatus(${order.orderId}, '已完成')">完成订单</button>`;
+            } else {
+                actions.innerHTML = '';
+            }
+
+            showModal('detailModal');
+        }
+
+        async function updateStatus(id, status) {
+            await fetchAPI('/order', {
+                method: 'PUT',
+                body: JSON.stringify({ orderId: id, orderStatus: status })
+            });
+            hideModal('detailModal');
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminComponents('订单管理');
+            loadData();
+        });
+    </script>
+</body>
+
+</html>
