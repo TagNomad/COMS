@@ -107,7 +107,7 @@ product-order-system/
 │   │   ├── webapp/
 │   │   │   └── WEB-INF/
 │   │   │       ├── web.xml               # Web应用配置
-│   │   │       └── jsp/                  # JSP 页面
+│   │   │       └── html/                # JSP 页面
 │   └── test/                             # 单元测试
 ├── pom.xml                               # Maven 配置文件
 └── README.md                             # 项目说明
