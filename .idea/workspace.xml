@@ -6,20 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5bd7229e-cdc4-444f-874f-487b876e746c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/controller/CustomerServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/controller/CustomerServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/dao/CustomerDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/dao/CustomerDao.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/dao/ProductDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/dao/ProductDao.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/model/Customer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/model/Customer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/model/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/model/Product.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/service/CustomerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/service/CustomerService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/db/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/db/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/css/style.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/customers.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/js/app.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/orders.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/products.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,8 +83,8 @@
       <predefined_log_file id="Tomcat Manager Log" />
       <predefined_log_file id="Tomcat Host Manager Log" />
       <option name="catalinaBase" value="D:\apache-tomcat-8.5.16" />
-      <option name="contextPath" value="webapp/" />
-      <option name="docBase" value="D:\java代码\COMS\src\main\webapp" />
+      <option name="contextPath" value="COMS/" />
+      <option name="docBase" value="D:\javacode\COMS\src\main\webapp" />
       <option name="extraClassPath" value="" />
       <option name="tomcatInfo">
         <TomcatInfo>
@@ -138,6 +124,8 @@
       <workItem from="1766498568093" duration="82000" />
       <workItem from="1766498659067" duration="213000" />
       <workItem from="1766538500983" duration="205000" />
+      <workItem from="1766540168013" duration="501000" />
+      <workItem from="1766540687941" duration="447000" />
     </task>
     <servers />
   </component>
