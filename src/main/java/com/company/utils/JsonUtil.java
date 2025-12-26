@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * JSON工具类 - 简单的JSON序列化和反序列化
