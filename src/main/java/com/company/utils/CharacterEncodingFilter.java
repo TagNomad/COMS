@@ -1,6 +1,6 @@
 package com.company.utils;
 
-import javax.servlet.*;
+import jakarta.servlet.*;
 import java.io.IOException;
 
 /**
@@ -22,7 +22,6 @@ public class CharacterEncodingFilter implements Filter {
             throws IOException, ServletException {
         request.setCharacterEncoding(encoding);
         response.setCharacterEncoding(encoding);
-        response.setContentType("text/html;charset=" + encoding);
         chain.doFilter(request, response);
     }
 
