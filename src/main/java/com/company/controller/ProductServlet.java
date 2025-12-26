@@ -81,6 +81,7 @@ public class ProductServlet extends HttpServlet {
             product.setPrice(JsonUtil.getBigDecimalValue(json, "price"));
             product.setStockQuantity(JsonUtil.getIntValue(json, "stockQuantity"));
             product.setStatus(JsonUtil.getStringValue(json, "status"));
+            product.setImageUrl(JsonUtil.getStringValue(json, "imageUrl"));
 
             if (product.getProductName() == null || product.getProductName().isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -117,6 +118,7 @@ public class ProductServlet extends HttpServlet {
             product.setPrice(JsonUtil.getBigDecimalValue(json, "price"));
             product.setStockQuantity(JsonUtil.getIntValue(json, "stockQuantity"));
             product.setStatus(JsonUtil.getStringValue(json, "status"));
+            product.setImageUrl(JsonUtil.getStringValue(json, "imageUrl"));
 
             if (productService.updateProduct(product)) {
                 out.print(JsonUtil.success());

@@ -172,51 +172,80 @@ public class OrderServlet extends HttpServlet {
     }
 
     /**
-     * 简单解析订单明细JSON数组
+     * 解析订单明细JSON数组
+     * 支持更灵活的格式
      */
     private List<OrderItem> parseOrderItems(String json) {
         List<OrderItem> items = new ArrayList<>();
-        int itemsStart = json.indexOf("\"items\"");
-        if (itemsStart == -1)
+        int itemsStartKey = json.indexOf("\"items\"");
+        if (itemsStartKey == -1)
             return items;
 
-        int arrayStart = json.indexOf("[", itemsStart);
-        int arrayEnd = json.indexOf("]", arrayStart);
-        if (arrayStart == -1 || arrayEnd == -1)
+        int arrayStart = json.indexOf("[", itemsStartKey);
+        if (arrayStart == -1)
             return items;
 
-        String itemsJson = json.substring(arrayStart + 1, arrayEnd);
-        String[] itemStrings = itemsJson.split("\\},\\{");
+        // 找到匹配的数组结束括号 ]
+        int arrayEnd = -1;
+        int bracketCount = 0;
+        for (int i = arrayStart; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '[')
+                bracketCount++;
+            else if (c == ']')
+                bracketCount--;
 
-        for (String itemStr : itemStrings) {
-            itemStr = itemStr.replace("{", "").replace("}", "");
-            OrderItem item = new OrderItem();
+            if (bracketCount == 0) {
+                arrayEnd = i;
+                break;
+            }
+        }
 
-            // 解析productId
-            int pidStart = itemStr.indexOf("\"productId\"");
-            if (pidStart != -1) {
-                int colonIdx = itemStr.indexOf(":", pidStart);
-                int endIdx = itemStr.indexOf(",", colonIdx);
-                if (endIdx == -1)
-                    endIdx = itemStr.length();
-                String pidStr = itemStr.substring(colonIdx + 1, endIdx).trim();
-                item.setProductId(Integer.parseInt(pidStr));
+        if (arrayEnd == -1)
+            return items;
+
+        String itemsArrayJson = json.substring(arrayStart + 1, arrayEnd);
+
+        // 简单的对象分割逻辑：查找 { 和 } 配对
+        int objStart = 0;
+        while (true) {
+            int openBrace = itemsArrayJson.indexOf("{", objStart);
+            if (openBrace == -1)
+                break;
+
+            // 找到匹配的 }
+            int closeBrace = -1;
+            int braceDepth = 0;
+            for (int i = openBrace; i < itemsArrayJson.length(); i++) {
+                char c = itemsArrayJson.charAt(i);
+                if (c == '{')
+                    braceDepth++;
+                else if (c == '}')
+                    braceDepth--;
+
+                if (braceDepth == 0) {
+                    closeBrace = i;
+                    break;
+                }
             }
 
-            // 解析quantity
-            int qtyStart = itemStr.indexOf("\"quantity\"");
-            if (qtyStart != -1) {
-                int colonIdx = itemStr.indexOf(":", qtyStart);
-                int endIdx = itemStr.indexOf(",", colonIdx);
-                if (endIdx == -1)
-                    endIdx = itemStr.length();
-                String qtyStr = itemStr.substring(colonIdx + 1, endIdx).trim();
-                item.setQuantity(Integer.parseInt(qtyStr));
-            }
+            if (closeBrace == -1)
+                break;
 
-            if (item.getProductId() != null && item.getQuantity() != null) {
+            String itemJson = itemsArrayJson.substring(openBrace, closeBrace + 1);
+
+            // 使用JsonUtil解析单个对象
+            Integer productId = JsonUtil.getIntValue(itemJson, "productId");
+            Integer quantity = JsonUtil.getIntValue(itemJson, "quantity");
+
+            if (productId != null && quantity != null) {
+                OrderItem item = new OrderItem();
+                item.setProductId(productId);
+                item.setQuantity(quantity);
                 items.add(item);
             }
+
+            objStart = closeBrace + 1;
         }
 
         return items;

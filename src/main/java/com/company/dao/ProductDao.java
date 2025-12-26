@@ -113,10 +113,14 @@ public class ProductDao {
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, product.getProductName());
-            stmt.setInt(2, product.getCategoryId());
+            if (product.getCategoryId() != null) {
+                stmt.setInt(2, product.getCategoryId());
+            } else {
+                stmt.setNull(2, Types.INTEGER);
+            }
             stmt.setString(3, product.getDescription());
             stmt.setString(4, product.getUnit());
-            stmt.setBigDecimal(5, product.getPrice());
+            stmt.setBigDecimal(5, product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             stmt.setInt(6, product.getStockQuantity() != null ? product.getStockQuantity() : 0);
             stmt.setString(7, product.getStatus() != null ? product.getStatus() : "在售");
             stmt.setString(8, product.getImageUrl());
@@ -136,12 +140,16 @@ public class ProductDao {
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, product.getProductName());
-            stmt.setInt(2, product.getCategoryId());
+            if (product.getCategoryId() != null) {
+                stmt.setInt(2, product.getCategoryId());
+            } else {
+                stmt.setNull(2, Types.INTEGER);
+            }
             stmt.setString(3, product.getDescription());
             stmt.setString(4, product.getUnit());
-            stmt.setBigDecimal(5, product.getPrice());
-            stmt.setInt(6, product.getStockQuantity());
-            stmt.setString(7, product.getStatus());
+            stmt.setBigDecimal(5, product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
+            stmt.setInt(6, product.getStockQuantity() != null ? product.getStockQuantity() : 0);
+            stmt.setString(7, product.getStatus() != null ? product.getStatus() : "在售");
             stmt.setString(8, product.getImageUrl());
             stmt.setInt(9, product.getProductId());
             return stmt.executeUpdate() > 0;

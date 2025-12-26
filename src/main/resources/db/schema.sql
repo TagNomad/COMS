@@ -101,3 +101,34 @@ CREATE TABLE Sales_Statistics (
     total_quantity INT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- =============================================
+-- 插入初始数据
+-- =============================================
+
+-- 插入默认产品分类
+INSERT INTO Categories (category_name, parent_id) VALUES ('电子产品', NULL);
+INSERT INTO Categories (category_name, parent_id) VALUES ('手机', 1);
+INSERT INTO Categories (category_name, parent_id) VALUES ('电脑', 1);
+INSERT INTO Categories (category_name, parent_id) VALUES ('平板', 1);
+INSERT INTO Categories (category_name, parent_id) VALUES ('服装', NULL);
+INSERT INTO Categories (category_name, parent_id) VALUES ('男装', 5);
+INSERT INTO Categories (category_name, parent_id) VALUES ('女装', 5);
+INSERT INTO Categories (category_name, parent_id) VALUES ('家居用品', NULL);
+INSERT INTO Categories (category_name, parent_id) VALUES ('厨房用品', 8);
+INSERT INTO Categories (category_name, parent_id) VALUES ('卧室用品', 8);
+INSERT INTO Categories (category_name, parent_id) VALUES ('食品饮料', NULL);
+INSERT INTO Categories (category_name, parent_id) VALUES ('零食', 11);
+INSERT INTO Categories (category_name, parent_id) VALUES ('饮料', 11);
+
+-- 插入示例产品
+INSERT INTO Products (product_name, category_id, description, unit, price, stock_quantity, status) VALUES 
+('iPhone 15 Pro', 2, '最新款苹果手机，A17芯片', '台', 8999.00, 50, '在售'),
+('MacBook Pro 14', 3, 'M3芯片，14英寸屏幕', '台', 14999.00, 30, '在售'),
+('iPad Air', 4, '10.9英寸平板电脑', '台', 4799.00, 40, '在售'),
+('男士休闲T恤', 6, '纯棉舒适，多色可选', '件', 99.00, 200, '在售'),
+('女士连衣裙', 7, '夏季新款，时尚优雅', '件', 199.00, 150, '在售'),
+('不锈钢炒锅', 9, '32cm大容量，不粘涂层', '个', 159.00, 80, '在售'),
+('乳胶枕头', 10, '泰国进口天然乳胶', '个', 299.00, 100, '在售'),
+('坚果礼盒', 12, '混合坚果，健康美味', '盒', 88.00, 300, '在售'),
+('气泡水', 13, '0糖0卡，多种口味', '瓶', 5.00, 500, '在售');
+

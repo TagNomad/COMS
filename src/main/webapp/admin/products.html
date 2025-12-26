@@ -114,7 +114,29 @@
         async function loadData() {
             categories = await fetchAPI('/category');
             const select = document.getElementById('categoryId');
-            select.innerHTML = categories.map(c => `<option value="${c.categoryId}">${c.categoryName}</option>`).join('');
+
+            // Build hierarchical category options
+            // First, get top-level categories (parent_id is null)
+            const topLevel = categories.filter(c => c.parentId === null);
+            const subCategories = categories.filter(c => c.parentId !== null);
+
+            let options = '';
+            topLevel.forEach(parent => {
+                options += `<option value="${parent.categoryId}">${parent.categoryName}</option>`;
+                // Find children of this parent
+                const children = subCategories.filter(c => c.parentId === parent.categoryId);
+                children.forEach(child => {
+                    options += `<option value="${child.categoryId}">&nbsp;&nbsp;└ ${child.categoryName}</option>`;
+                });
+            });
+
+            // Add any orphan sub-categories (parent doesn't exist)
+            const orphans = subCategories.filter(c => !topLevel.some(p => p.categoryId === c.parentId));
+            orphans.forEach(orphan => {
+                options += `<option value="${orphan.categoryId}">${orphan.categoryName}</option>`;
+            });
+
+            select.innerHTML = options;
 
             await searchProducts();
         }

@@ -6,6 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="5bd7229e-cdc4-444f-874f-487b876e746c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/controller/OrderServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/controller/OrderServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/controller/ProductServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/controller/ProductServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/dao/ProductDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/dao/ProductDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/company/utils/JsonUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/company/utils/JsonUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/db/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/admin/products.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/admin/products.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/common/nav-admin.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/common/nav-admin.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/user/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/user/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/user/products.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/user/products.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +66,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;Smart Tomcat.tomcat.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop 上的 #1&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/javacode/COMS&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -125,7 +134,20 @@
       <workItem from="1766498659067" duration="213000" />
       <workItem from="1766538500983" duration="205000" />
       <workItem from="1766540168013" duration="501000" />
-      <workItem from="1766540687941" duration="447000" />
+      <workItem from="1766540687941" duration="584000" />
+      <workItem from="1766541509763" duration="369000" />
+      <workItem from="1766545830721" duration="367000" />
+      <workItem from="1766547895019" duration="487000" />
+      <workItem from="1766548750104" duration="1525000" />
+      <workItem from="1766575680140" duration="78000" />
+      <workItem from="1766575875192" duration="3000" />
+      <workItem from="1766576509052" duration="10000" />
+      <workItem from="1766628414857" duration="4051000" />
+      <workItem from="1766644574803" duration="768000" />
+      <workItem from="1766647405392" duration="4019000" />
+      <workItem from="1766652879418" duration="2000" />
+      <workItem from="1766731443889" duration="939000" />
+      <workItem from="1766733212129" duration="4068000" />
     </task>
     <servers />
   </component>

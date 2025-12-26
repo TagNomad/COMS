@@ -29,10 +29,30 @@ public class JsonUtil {
         if (obj instanceof Timestamp) {
             return "\"" + obj.toString() + "\"";
         }
+        if (obj instanceof java.util.Map) {
+            return mapToJson((java.util.Map<?, ?>) obj);
+        }
         if (obj instanceof List) {
             return listToJson((List<?>) obj);
         }
         return objectToJson(obj);
+    }
+
+    /**
+     * 将Map转换为JSON对象
+     */
+    private static String mapToJson(java.util.Map<?, ?> map) {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
+        for (java.util.Map.Entry<?, ?> entry : map.entrySet()) {
+            if (!first)
+                sb.append(",");
+            sb.append("\"").append(entry.getKey()).append("\":");
+            sb.append(toJson(entry.getValue()));
+            first = false;
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
@@ -140,6 +160,12 @@ public class JsonUtil {
             start++;
         }
 
+        // Handle both quoted strings ("1") and raw numbers (1)
+        boolean isQuoted = start < json.length() && json.charAt(start) == '"';
+        if (isQuoted) {
+            start++; // Skip opening quote
+        }
+
         int end = start;
         while (end < json.length() && (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-')) {
             end++;
@@ -167,6 +193,12 @@ public class JsonUtil {
         int start = colonIndex + 1;
         while (start < json.length() && Character.isWhitespace(json.charAt(start))) {
             start++;
+        }
+
+        // Handle both quoted strings ("1.5") and raw numbers (1.5)
+        boolean isQuoted = start < json.length() && json.charAt(start) == '"';
+        if (isQuoted) {
+            start++; // Skip opening quote
         }
 
         int end = start;

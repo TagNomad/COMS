@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 分类管理</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="main-content">
+        <div id="header-placeholder"></div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">分类列表</h3>
+                <button class="btn btn-primary" onclick="openAddModal()">+ 新增分类</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>分类名称</th>
+                            <th>父分类</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryList"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增分类</h3>
+                <button class="close-btn" onclick="hideModal('categoryModal')">&times;</button>
+            </div>
+            <form id="categoryForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label class="form-label">分类名称 <span style="color: var(--danger);">*</span></label>
+                    <input type="text" class="form-control" id="categoryName" required placeholder="请输入分类名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">父分类</label>
+                    <select class="form-control" id="parentId">
+                        <option value="">-- 作为顶级分类 --</option>
+                    </select>
+                    <small style="color: var(--text-muted); display: block; margin-top: 6px;">
+                        选择父分类可创建子分类，留空则创建顶级分类
+                    </small>
+                </div>
+                <div style="text-align: right; margin-top: 24px;">
+                    <button type="button" class="btn"
+                        style="background: transparent; color: var(--text-muted); margin-right: 10px;"
+                        onclick="hideModal('categoryModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let allCategories = [];
+
+        async function loadData() {
+            try {
+                allCategories = await fetchAPI('/category');
+                renderTable(allCategories);
+                updateParentSelect();
+            } catch (e) {
+                console.error('Failed to load categories', e);
+            }
+        }
+
+        function renderTable(categories) {
+            const tbody = document.getElementById('categoryList');
+            
+            // Build a map for quick parent lookup
+            const categoryMap = new Map();
+            categories.forEach(c => categoryMap.set(c.categoryId, c));
+            
+            // Sort: top-level first, then by ID
+            const sorted = [...categories].sort((a, b) => {
+                if (a.parentId === null && b.parentId !== null) return -1;
+                if (a.parentId !== null && b.parentId === null) return 1;
+                return a.categoryId - b.categoryId;
+            });
+
+            tbody.innerHTML = sorted.map(c => {
+                const parentName = c.parentId ? (categoryMap.get(c.parentId)?.categoryName || '-') : '-';
+                const indent = c.parentId ? 'padding-left: 30px;' : '';
+                const prefix = c.parentId ? '<span style="color: var(--text-muted); margin-right: 8px;">└</span>' : '';
+                
+                return `
+                    <tr>
+                        <td>${c.categoryId}</td>
+                        <td style="${indent}">${prefix}${c.categoryName}</td>
+                        <td>${parentName}</td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 4px 12px; font-size: 12px" 
+                                onclick='editCategory(${JSON.stringify(c)})'>编辑</button>
+                            <button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px" 
+                                onclick="deleteCategory(${c.categoryId})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateParentSelect(excludeId = null) {
+            const select = document.getElementById('parentId');
+            // Only show top-level categories as parent options
+            const topLevel = allCategories.filter(c => c.parentId === null && c.categoryId !== excludeId);
+            
+            select.innerHTML = '<option value="">-- 作为顶级分类 --</option>' +
+                topLevel.map(c => `<option value="${c.categoryId}">${c.categoryName}</option>`).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '新增分类';
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryId').value = '';
+            updateParentSelect();
+            showModal('categoryModal');
+        }
+
+        function editCategory(category) {
+            document.getElementById('modalTitle').textContent = '编辑分类';
+            document.getElementById('categoryId').value = category.categoryId;
+            document.getElementById('categoryName').value = category.categoryName;
+            
+            // Update parent select, excluding current category to prevent self-reference
+            updateParentSelect(category.categoryId);
+            document.getElementById('parentId').value = category.parentId || '';
+            
+            showModal('categoryModal');
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('categoryId').value;
+            const parentIdValue = document.getElementById('parentId').value;
+            
+            const data = {
+                categoryName: document.getElementById('categoryName').value,
+                parentId: parentIdValue ? parseInt(parentIdValue) : null
+            };
+
+            try {
+                if (id) {
+                    data.categoryId = parseInt(id);
+                    await fetchAPI('/category', { 
+                        method: 'PUT', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data) 
+                    });
+                } else {
+                    await fetchAPI('/category', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data) 
+                    });
+                }
+                hideModal('categoryModal');
+                loadData();
+            } catch (error) {
+                // Error already shown by fetchAPI
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('确定要删除该分类吗？如果该分类下有产品，将无法删除。')) {
+                return;
+            }
+            
+            try {
+                await fetchAPI(`/category/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch (error) {
+                // Error already shown by fetchAPI
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            loadTopNav();
+            loadAdminComponents('分类管理');
+            loadData();
+        });
+    </script>
+</body>
+
+</html>
