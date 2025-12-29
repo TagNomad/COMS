@@ -140,6 +140,11 @@ async function loadTopNav() {
             document.body.style.paddingTop = '60px'; // Top nav height
 
             updateAuthUI();
+
+            // Refresh Cart Count if Cart is loaded
+            if (typeof Cart !== 'undefined') {
+                Cart.updateUI();
+            }
         }
     } catch (e) {
         console.error("Failed to load top nav", e);
@@ -171,31 +176,49 @@ function checkLogin() {
     const userStr = localStorage.getItem('user');
     const currentPath = window.location.pathname;
 
-    // Pages that require login
-    const protectedPaths = ['/user/', '/admin/'];
-    // Pages specifically for public access (login page itself)
-    const publicPaths = ['/common/login.html', '/common/register.html'];
+    // Define protected paths
+    const protectedPaths = {
+        admin: ['/admin/'],
+        user: ['/user/']
+    };
+    const publicPaths = ['login.html', 'register.html'];
 
-    // const isProtected = protectedPaths.some(p => currentPath.includes(p));
-    // const isPublic = publicPaths.some(p => currentPath.includes(p));
-
-    // Allow user home to be viewed?? Maybe restrict access to specific features?
-    // Requirement says "separate accounts", so likely restrict access.
-
-    if (!userStr && protectedPaths.some(p => currentPath.includes(p))) {
-        // Not logged in, trying to access protected page
-        // Redirect to login page
+    // If not logged in and trying to access protected pages
+    if (!userStr && (currentPath.includes('/admin/') || currentPath.includes('/user/'))) {
         window.location.href = '../common/login.html';
         return;
     }
 
-    if (userStr && publicPaths.some(p => currentPath.endsWith(p))) {
-        // Already logged in, trying to access login page
+    // If logged in, check role-based access
+    if (userStr) {
         const user = JSON.parse(userStr);
-        if (user.role === 'admin') {
-            window.location.href = '../admin/dashboard.html';
-        } else {
-            window.location.href = '../user/home.html';
+        const userRole = user.role; // 'admin' or 'user'
+
+        // Prevent already logged in users from accessing login page
+        if (publicPaths.some(p => currentPath.endsWith(p))) {
+            if (userRole === 'admin') {
+                window.location.href = '../admin/dashboard.html';
+            } else {
+                window.location.href = '../user/home.html';
+            }
+            return;
+        }
+
+        // CRITICAL: Enforce role-based access control
+        // Admin can ONLY access admin pages
+        if (userRole === 'admin' && currentPath.includes('/user/')) {
+            alert('管理员账号无权访问用户页面，请使用管理员后台');
+            localStorage.removeItem('user'); // Force logout
+            window.location.href = '../common/login.html';
+            return;
+        }
+
+        // User can ONLY access user pages
+        if (userRole === 'user' && currentPath.includes('/admin/')) {
+            alert('普通用户无权访问管理员后台，请使用用户界面');
+            localStorage.removeItem('user'); // Force logout
+            window.location.href = '../common/login.html';
+            return;
         }
     }
 }

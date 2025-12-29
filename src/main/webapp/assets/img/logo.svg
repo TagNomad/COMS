@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+    <rect width="200" height="60" rx="8" fill="white" fill-opacity="0.0"/>
+    <path d="M40 30L30 15H20L30 30L20 45H30L40 30Z" fill="#6366f1"/>
+    <path d="M30 30L40 15H50L40 30L50 45H40L30 30Z" fill="#111827"/>
+    <text x="65" y="42" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#111827" letter-spacing="-1">COMS</text>
+</svg>

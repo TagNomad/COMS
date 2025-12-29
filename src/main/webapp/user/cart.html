@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMS - 购物车</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .cart-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .cart-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 16px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+            align-items: center;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            background: #f3f4f6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .item-details h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .item-details p {
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .summary-total {
+            border-top: 1px solid var(--border-light);
+            padding-top: 16px;
+            margin-top: 16px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="main-content">
+        <div id="header-placeholder"></div>
+
+        <div class="cart-container">
+            <h1 class="page-title" style="margin-bottom: 32px;">我的购物车</h1>
+
+            <div class="cart-grid" id="cartContent">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">安全支付</div>
+                <div style="cursor: pointer;" onclick="hideModal('paymentModal')">✕</div>
+            </div>
+
+            <div id="paymentStep1">
+                <p style="margin-bottom: 20px; color: var(--text-light);">请选择支付方式以完成订单</p>
+
+                <div class="payment-methods">
+                    <div class="payment-method-card active" onclick="selectPayment(this, 'wechat')">
+                        <span style="font-size: 24px;">💬</span>
+                        <span style="font-weight: 600; font-size: 14px;">微信支付</span>
+                    </div>
+                    <div class="payment-method-card" onclick="selectPayment(this, 'alipay')">
+                        <span style="font-size: 24px;">💙</span>
+                        <span style="font-weight: 600; font-size: 14px;">支付宝</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">收货地址</label>
+                    <input type="text" id="shippingAddress" class="form-control" placeholder="请输入详细地址...">
+                </div>
+
+                <div class="summary-total" style="margin-bottom: 24px; border: none; padding: 0;">
+                    <span>支付金额</span>
+                    <span style="color: var(--primary);" id="payTotal">¥0.00</span>
+                </div>
+
+                <button class="btn btn-primary" onclick="showQRCode()"
+                    style="width: 100%; padding: 14px; font-size: 16px;">
+                    立即支付
+                </button>
+            </div>
+
+            <div id="paymentStep2" style="display: none; text-align: center;">
+                <p style="margin-bottom: 20px; font-weight: 600;">请扫描二维码支付</p>
+
+                <div class="fake-qr-container">
+                    <div class="fake-qr-code"></div>
+                    <p style="margin-top: 12px; font-size: 13px; color: var(--text-light);">支付处理中...</p>
+                </div>
+
+                <div id="loadingSpinner" style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <div class="spinner" style="border-color: var(--primary); border-top-color: transparent;"></div>
+                </div>
+
+                <p id="paymentStatus" style="font-size: 14px; color: var(--text-muted);">正在等待支付结果...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/cart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            loadTopNav();
+            // We'll manually load the header to inject the Cart Icon logic if not present in app.js yet
+            // But for now let's assume app.js handles the placeholder, and we might need to update the header content dynamically
+            loadUserComponents('购物车');
+            renderCart();
+        });
+
+        function renderCart() {
+            const items = Cart.getItems();
+            const container = document.getElementById('cartContent');
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🛒</div>
+                        <h3 style="margin-bottom: 12px;">购物车是空的</h3>
+                        <p style="color: var(--text-light); margin-bottom: 24px;">看来您还没有添加任何商品</p>
+                        <a href="products.html" class="btn btn-primary">去购物</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const total = Cart.getTotal();
+
+            container.innerHTML = `
+                <div class="cart-items">
+                    ${items.map((item, index) => `
+                        <div class="cart-item">
+                            <div class="item-image">
+                                ${item.imageUrl
+                    ? `<img src="${item.imageUrl}" onerror="this.parentElement.innerHTML='🛒'">`
+                    : '🛒'}
+                            </div>
+                            <div class="item-details">
+                                <h3>${item.productName}</h3>
+                                <p>¥${item.price.toFixed(2)}</p>
+                            </div>
+                            <div class="item-actions">
+                                <div class="qty-selector">
+                                    <button class="qty-btn" onclick="updateItemQty(${index}, -1)">-</button>
+                                    <input type="text" class="qty-input" value="${item.quantity}" readonly>
+                                    <button class="qty-btn" onclick="updateItemQty(${index}, 1)">+</button>
+                                </div>
+                                <span style="font-weight: 600; min-width: 80px; text-align: right;">
+                                    ¥${(item.price * item.quantity).toFixed(2)}
+                                </span>
+                                <button class="btn btn-danger" onclick="removeItem(${index})" style="padding: 8px;">✕</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="summary-card">
+                    <h3 style="margin-bottom: 20px;">订单摘要</h3>
+                    <div class="summary-row">
+                        <span>商品总数</span>
+                        <span>${Cart.getCount()}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>运费</span>
+                        <span>免运费</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>总计</span>
+                        <span>¥${formatNumbers(total)}</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 14px;" onclick="startCheckout()">
+                        去结算
+                    </button>
+                    <button class="btn" style="width: 100%; margin-top: 12px; color: var(--text-light);" onclick="Cart.clear(); renderCart();">
+                        清空购物车
+                    </button>
+                    <a href="products.html" class="btn" style="display: block; width: 100%; margin-top: 8px; color: var(--primary); text-align: center; text-decoration: none; font-weight: 500;">
+                        继续购物
+                    </a>
+                </div>
+            `;
+        }
+
+        function updateItemQty(index, delta) {
+            Cart.updateQuantity(index, delta);
+            renderCart();
+        }
+
+        function removeItem(index) {
+            // Replaced native confirm with a more fluid UX
+            // Optionally could use a custom modal, but direct removal is often preferred in modern UX
+            // provided it's easy to re-add (which is hard here). 
+            // Let's keep a safety check but maybe make it less intrusive? 
+            // For now, let's just do it directly and show a toast, usually for a cart removal it's fine.
+            if (confirm('确定要移除此商品吗？')) {
+                Cart.removeItem(index);
+                renderCart();
+                Cart.showToast('商品已移除');
+            }
+        }
+
+        function formatNumbers(num) {
+            return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Checklist Flow
+        function startCheckout() {
+            const total = Cart.getTotal();
+            document.getElementById('payTotal').textContent = '¥' + formatNumbers(total);
+            document.getElementById('paymentStep1').style.display = 'block';
+            document.getElementById('paymentStep2').style.display = 'none';
+
+            // Pre-fill address from last order if possible, or just leave blank
+            document.getElementById('shippingAddress').value = localStorage.getItem('last_address') || '';
+
+            showModal('paymentModal');
+        }
+
+        function selectPayment(el, type) {
+            document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function showQRCode() {
+            const address = document.getElementById('shippingAddress').value;
+            if (!address.trim()) {
+                alert('请输入收货地址');
+                return;
+            }
+            localStorage.setItem('last_address', address);
+
+            document.getElementById('paymentStep1').style.display = 'none';
+            document.getElementById('paymentStep2').style.display = 'block';
+
+            // Simulate processing
+            setTimeout(() => {
+                document.getElementById('paymentStatus').textContent = '支付成功！正在创建订单...';
+                document.getElementById('paymentStatus').style.color = 'var(--success)';
+                createOrder(address);
+            }, 3000);
+        }
+
+        async function createOrder(address) {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return; // Should be logged in
+            const user = JSON.parse(userStr);
+            const items = Cart.getItems();
+
+            try {
+                // Determine unitPrice from one of the items? API expects array of items.
+                // We'll map cart items to order items structure
+                // Note: The API we saw in ProductServlet doesn't show Order logic, but previous context says there is an Order API at /order
+
+                const orderItems = items.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    unitPrice: item.price
+                }));
+
+                await fetchAPI('/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customerId: user.id,
+                        shippingAddress: address,
+                        items: orderItems
+                    })
+                });
+
+                Cart.clear();
+                hideModal('paymentModal');
+                // Use a custom styled alert or toast instead of native alert if possible, 
+                // but for now native alert is fine, just fix the redirect.
+                // alert('订单创建成功！'); // Optional: replace with better UI feedback
+
+                // Redirect to the correct orders page
+                window.location.href = 'my-orders.html';
+            } catch (e) {
+                console.error(e);
+                alert('订单创建失败: ' + e.message);
+                hideModal('paymentModal');
+            }
+        }
+    </script>
+</body>
+
+</html>

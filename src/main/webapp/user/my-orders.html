@@ -7,6 +7,84 @@
     <title>COMS - 我的订单</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .order-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .order-detail-header h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .order-detail-header p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted, #6b7280);
+        }
+
+        .order-items-list {
+            margin-bottom: 24px;
+        }
+
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .order-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .order-item-img {
+            width: 48px;
+            height: 48px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .order-item-name {
+            font-weight: 500;
+        }
+
+        .order-item-qty {
+            color: var(--text-muted, #6b7280);
+            font-size: 13px;
+        }
+
+        .order-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .order-summary-total {
+            font-weight: 700;
+            font-size: 18px;
+            border-top: 1px solid var(--border-color, #e5e7eb);
+            padding-top: 16px;
+            margin-top: 8px;
+        }
+    </style>
 </head>
 
 <body>
@@ -36,40 +114,144 @@
         </div>
     </main>
 
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderDetailModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">订单详情</div>
+                <div style="cursor: pointer;" onclick="hideModal('orderDetailModal')">✕</div>
+            </div>
+            <div id="orderDetailContent">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
     <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/cart.js"></script>
     <script>
+        let allOrders = [];
+
         document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            loadTopNav();
             loadUserComponents('我的订单');
             loadMyOrders();
+
+            document.getElementById('orderDetailModal').addEventListener('click', function (e) {
+                if (e.target === this) hideModal('orderDetailModal');
+            });
         });
 
         async function loadMyOrders() {
-            // Mocking user ID or endpoint for current user orders
-            // In a real app, the backend would filter by session.
-            // For now, we'll try to load all and filter by a dummy customer ID if needed, 
-            // or just show all orders if the API doesn't support 'my orders' yet.
             try {
+                const userStr = localStorage.getItem('user');
+                if (!userStr) {
+                    window.location.href = '../common/login.html';
+                    return;
+                }
+                const user = JSON.parse(userStr);
+
+                // Fetch all orders and filter by current user
                 const orders = await fetchAPI('/order');
-                // Showing all for demo purposes as we don't have auth session logic in frontend yet
-                renderMyOrders(orders);
+                allOrders = orders.filter(o => o.customerId === user.id);
+                renderMyOrders(allOrders);
             } catch (e) {
                 console.error(e);
             }
         }
 
+        function getStatusBadge(status) {
+            const statusMap = {
+                '待审核': { bg: '#fef3c7', color: '#d97706' },
+                '已确认': { bg: '#d1fae5', color: '#059669' },
+                '已发货': { bg: '#dbeafe', color: '#2563eb' },
+                '已完成': { bg: '#e0e7ff', color: '#4f46e5' },
+                '已取消': { bg: '#fee2e2', color: '#dc2626' }
+            };
+            const s = statusMap[status] || { bg: '#eef2ff', color: '#6366f1' };
+            return `<span class="status-badge" style="background: ${s.bg}; color: ${s.color};">${status}</span>`;
+        }
+
         function renderMyOrders(orders) {
             const tbody = document.getElementById('myOrderList');
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">暂无订单记录</td></tr>`;
+                return;
+            }
             tbody.innerHTML = orders.map(o => `
                 <tr>
                     <td>#${o.orderId}</td>
                     <td>${formatDate(o.orderDate)}</td>
                     <td>${formatCurrency(o.totalAmount)}</td>
-                    <td><span class="status-badge" style="background: #eef2ff; color: var(--primary);">${o.orderStatus}</span></td>
+                    <td>${getStatusBadge(o.orderStatus)}</td>
                     <td>
-                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px">查看</button>
+                        <button class="btn btn-primary" style="padding: 4px 12px; font-size: 12px" onclick="viewOrder(${o.orderId})">查看</button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function viewOrder(orderId) {
+            try {
+                // Fetch order details from API
+                const order = await fetchAPI(`/order/${orderId}`);
+                renderOrderDetail(order);
+                showModal('orderDetailModal');
+            } catch (e) {
+                console.error('Failed to load order details', e);
+                alert('无法加载订单详情');
+            }
+        }
+
+        function renderOrderDetail(order) {
+            const container = document.getElementById('orderDetailContent');
+
+            // Build items list
+            const itemsHtml = (order.items && order.items.length > 0)
+                ? order.items.map(item => `
+                    <div class="order-item-row">
+                        <div class="order-item-info">
+                            <div class="order-item-img">🛍️</div>
+                            <div>
+                                <div class="order-item-name">${item.productName || '商品 #' + item.productId}</div>
+                                <div class="order-item-qty">x${item.quantity} @ ¥${item.unitPrice.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div style="font-weight: 600;">¥${(item.quantity * item.unitPrice).toFixed(2)}</div>
+                    </div>
+                `).join('')
+                : '<p style="color: var(--text-muted); text-align: center;">无商品明细</p>';
+
+            container.innerHTML = `
+                <div class="order-detail-header">
+                    <div>
+                        <h3>订单 #${order.orderId}</h3>
+                        <p>下单时间: ${formatDate(order.orderDate)}</p>
+                        <p>收货地址: ${order.shippingAddress || '未填写'}</p>
+                    </div>
+                    <div>${getStatusBadge(order.orderStatus)}</div>
+                </div>
+
+                <div class="order-items-list">
+                    ${itemsHtml}
+                </div>
+
+                <div class="order-summary">
+                    <div class="order-summary-row">
+                        <span>商品小计</span>
+                        <span>¥${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="order-summary-row">
+                        <span>运费</span>
+                        <span>免运费</span>
+                    </div>
+                    <div class="order-summary-row order-summary-total">
+                        <span>订单总额</span>
+                        <span style="color: var(--primary);">¥${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>

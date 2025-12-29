@@ -1,6 +1,9 @@
 <div class="top-nav-glass">
     <div class="top-nav-container">
-        <a href="../user/home.html" class="logo">🍎 COMS Store</a>
+        <a href="../user/home.html" class="logo" style="display: flex; align-items: center; gap: 8px;">
+            <img src="../assets/img/logo.svg" alt="COMS" style="height: 32px;">
+            <span>COMS Store</span>
+        </a>
 
         <div class="nav-links">
             <a href="../user/home.html">首页</a>
@@ -8,9 +11,22 @@
             <a href="../user/my-orders.html">我的订单</a>
         </div>
 
-        <div class="auth-buttons" id="authArea">
-            <!-- Will be populated by JS -->
-            <a href="../common/login.html" class="nav-btn">登录</a>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="../user/cart.html" class="cart-badge-container"
+                style="color: var(--text-main); text-decoration: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <div class="cart-counter" style="display: none;">0</div>
+            </a>
+
+            <div class="auth-buttons" id="authArea">
+                <!-- Will be populated by JS -->
+                <a href="../common/login.html" class="nav-btn">登录</a>
+            </div>
         </div>
     </div>
 </div>

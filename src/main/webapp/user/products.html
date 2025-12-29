@@ -494,6 +494,7 @@
     </div>
 
     <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/cart.js"></script>
     <script>
         let allCategories = [];
         let allProducts = [];
@@ -513,9 +514,7 @@
             loadUserComponents('商品浏览');
             loadData();
 
-            document.getElementById('buyModal').addEventListener('click', function (e) {
-                if (e.target === this) hideModal('buyModal');
-            });
+            // Re-init cart UI just in case logic runs before app.js nav load finishes (though app.js handles it too)
         });
 
         async function loadData() {
@@ -590,7 +589,7 @@
             }
 
             grid.innerHTML = products.map(p => `
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='products.html?id=${p.productId}'">
                     <div class="product-image">
                         ${p.imageUrl
                     ? `<img src="${p.imageUrl}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:32px\\'>✨</span>'">`
@@ -615,7 +614,9 @@
                     e.stopPropagation();
                     const productId = parseInt(this.getAttribute('data-product-id'));
                     const product = allProducts.find(p => p.productId === productId);
-                    if (product) openBuyModal(product);
+                    if (product) {
+                        Cart.addItem(product);
+                    }
                 });
             });
         }
